@@ -1,0 +1,16 @@
+description: Ultralytics w2024-03-02 model trained on /content/New_HelmetDetection-2/data.yaml
+author: Ultralytics
+license: AGPL-3.0 https://ultralytics.com/license
+date: '2024-03-07T02:29:02.060837'
+version: 8.1.6
+stride: 32
+task: detect
+batch: 1
+imgsz:
+- 640
+- 640
+names:
+  0: No Helmet
+  1: Person
+  2: Rider
+  3: Wear a helmet
