@@ -1,0 +1,15 @@
+names:
+- No Helmet
+- Person
+- Rider
+- Wear a helmet
+nc: 4
+roboflow:
+  license: CC BY 4.0
+  project: new_helmetdetection
+  url: https://universe.roboflow.com/natthakorn/new_helmetdetection/dataset/5
+  version: 5
+  workspace: natthakorn
+test: /content/New_HelmetDetection-5/test/images
+train: /content/New_HelmetDetection-5/train/images
+val: /content/New_HelmetDetection-5/valid/images
