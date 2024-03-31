@@ -21,28 +21,36 @@ collection = database[collection_name]
 
 cooldown_period = 10  # 1 minute
 
+# ZONE_POLYGON = np.array([
+#     [0.3, 0.05],
+#     [0.7, 0.05],
+#     [0.7, 0.95],
+#     [0.3, 0.95]
+# ])
 ZONE_POLYGON = np.array([
-    [0.3, 0.05],
-    [0.7, 0.05],
-    [0.7, 0.95],
-    [0.3, 0.95]
+    [0.2, 0.1],
+    [0.8, 0.1],
+    [0.8,0.8],
+    [0.2,0.8],
+    [0.2,0.1]
 ])
 
 ModelConfig = namedtuple('ModelConfig', ['path', 'names'])
-model_path = "D:\Private\Y3Project\python_project\Weights\w2024-03-30\w1830nor\wbest_n.pt"
+model_path = "D:\Private\Y3Project\python_project\Weights\w2024-03-31\wbest.pt"
 model_config = ModelConfig(
     path= model_path,
     names=["No Helmet", "Person", "Rider", "Wear a helmet"]  # Replace with actual class names
 )
 
-rstp_url = 'rtsp://admin:kasidate01@192.168.123.71:554/Streaming/Channels/101'
+#rstp_url = 'rtsp://admin:kasidate01@192.168.123.71:554/Streaming/Channels/101'
+rstp_url = "D:\Videos\s2024-03-31 16-23-38.mp4"
 
 
 def parse_arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="YOLOv8 live")
     parser.add_argument(
         "--webcam-resolution",
-        default=[1280, 720],
+        default=[1920, 1080],
         nargs=2,
         type=int
     )
@@ -195,7 +203,8 @@ def main():
 
         cv2.rectangle(frame, (10, 10), (200, 50), bg_color, -1)  # Rounded edge square background
         cv2.putText(frame, fps_text, (15, 40), cv2.FONT_HERSHEY_SIMPLEX, 1, text_color, 2)  # White text
-
+        cv2.namedWindow('yolov8', cv2.WINDOW_NORMAL)
+        cv2.resizeWindow('yolov8',1920,1080)
         cv2.imshow("yolov8", frame)
         if (cv2.waitKey(30) == 27):
             break
