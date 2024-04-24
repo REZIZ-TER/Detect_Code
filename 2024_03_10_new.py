@@ -9,6 +9,10 @@ from pymongo import MongoClient
 from datetime import datetime
 from pytz import timezone
 import base64
+import torch
+device = 'cuda' if torch.cuda.is_available() else 'cpu'
+print(f'Using device: {device}')
+torch.cuda.set_device(0)
 
 # กำหนดข้อมูลเชื่อมต่อ MongoDB
 mongo_uri = "mongodb+srv://myadmin:kasidate01@mycluster.puhoukq.mongodb.net/?retryWrites=true&w=majority&appName=myCluster"
@@ -45,14 +49,14 @@ ZONE_POLYGON = np.array([
 # ])
 
 ModelConfig = namedtuple('ModelConfig', ['path', 'names'])
-model_path = "D:\Private\Y3Project\python_project\Weights\w2024-04-03\wbest.pt"
+model_path = "D:\\Private\\Y3Project\\python_project\\runs\\detect\\train\\weights\\best.pt"
 model_config = ModelConfig(
     path= model_path,
     names=["No Helmet", "Person", "Rider", "Wear a helmet"]  # Replace with actual class names
 )
 
-rstp_url = 'rtsp://admin:kasidate01@192.168.123.71:554/Streaming/Channels/101'
-#rstp_url = "D:\Private\Y3Project\Filter_Pic\moto.mp4"
+#rstp_url = 'rtsp://admin:kasidate01@192.168.34.71:554/Streaming/Channels/101'
+rstp_url = "D:\Private\Y3Project\Filter_Pic\ss100met.mp4"
 
 
 def parse_arguments() -> argparse.Namespace:
@@ -90,7 +94,7 @@ def main():
     frame_width, frame_height = args.webcam_resolution
 
     model = YOLO(model_config.path)
-    cap = cv2.VideoCapture(rstp_url)
+    cap = cv2.VideoCapture(0)
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, frame_width)
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, frame_height)
 
@@ -120,7 +124,7 @@ def main():
     fps_start_time = time.time()
     fps_counter = 0
 
-    skip_frames = 10  # Process every 5th frame
+    skip_frames = 60  # Process every 5th frame
     frame_count = 0
     max_retries = 30  # Maximum number of retries
     retry_count = 0
@@ -132,25 +136,24 @@ def main():
             retry_count += 1
             if retry_count <= max_retries:
                 print(f"Error reading frame, retrying ({retry_count}/{max_retries})")
-                time.sleep(1)
+                time.sleep(0.5)
                 continue
             else:
                 print("Max retries reached, exiting.")
                 break
-
-        retry_count = 0
-
-        frame_count += 1
-
-        if frame_count % skip_frames != 0:
-            continue
+        
+        # retry_count = 0
+        
+        # frame_count += 1
+        
+        # if frame_count % skip_frames != 0:
+        #     continue
 
         fps_counter += 1
         bg_color = (0, 0, 0)  # Black background
         text_color = (255, 255, 255)  # White text
-        tracker = sv.ByteTrack()
 
-        for result in model.track(source=frame, stream=True, persist=True,conf=0.45):
+        for result in model.track(source=frame, stream=True, persist=True, conf=0.5, device = 'cuda'):
             frame = result.orig_img
             detections = sv.Detections.from_ultralytics(result)
             #detections = tracker.update_with_detections(detections)
@@ -184,8 +187,8 @@ def main():
 
             # ตรวจสอบว่า detections มีขนาดไม่เท่ากับ 0
             if len(detections) > 0:
-                count_no_helmet = np.count_nonzero((detections.class_id == 0) & (detections.confidence >= 0.5) & mask) #No Helmet
-                count_rider = np.count_nonzero((detections.class_id == 2) & (detections.confidence >= 0.5) & mask) #Rider
+                count_no_helmet = np.count_nonzero((detections.class_id == 0) & (detections.confidence > 0.5) & mask) #No Helmet
+                count_rider = np.count_nonzero((detections.class_id == 2) & (detections.confidence > 0.5) & mask) #Rider
 
                 # Print ค่าจำนวนออกมา
                 print(f"จำนวนคนไม่สวมหมวก: {count_no_helmet}")
@@ -212,10 +215,10 @@ def main():
             fps_start_time = time.time()
             fps_text = f"FPS: {fps:.2f}"
 
-        cv2.rectangle(frame, (10, 10), (200, 50), bg_color, -1)  # Rounded edge square background
+        cv2.rectangle(frame, (10, 10), (200, 50), bg_color, -1)
         cv2.putText(frame, fps_text, (15, 40), cv2.FONT_HERSHEY_SIMPLEX, 1, text_color, 2)  # White text
-        cv2.namedWindow('yolov8', cv2.WINDOW_NORMAL)
-        cv2.resizeWindow('yolov8',1280,720)
+        # cv2.namedWindow('yolov8', cv2.WINDOW_NORMAL)
+        # cv2.resizeWindow('yolov8',1280,720)
         cv2.imshow("yolov8", frame)
         if (cv2.waitKey(30) == 27):
             break
